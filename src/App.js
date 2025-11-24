@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGrid, LogIn, LogOut, Shield, Lock, Download } from 'lucide-react';
+import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGrid, LogIn, LogOut, Shield, Lock, Download, AlertTriangle, CheckCircle } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
@@ -265,6 +265,44 @@ const App = () => {
       localStorage.removeItem('rigvibes_user');
   };
 
+  // --- LOGIKA BOTTLENECK (HEURISTIC) ---
+  const getComponentTier = (name, category) => {
+    const n = name.toLowerCase();
+    if (category === 'CPU') {
+        if (n.includes('i9') || n.includes('ryzen 9')) return 90;
+        if (n.includes('i7') || n.includes('ryzen 7')) return 75;
+        if (n.includes('i5') || n.includes('ryzen 5')) return 55;
+        if (n.includes('i3') || n.includes('ryzen 3')) return 30;
+        return 40; 
+    }
+    if (category === 'GPU') {
+        if (n.includes('4090') || n.includes('7900 xtx')) return 100;
+        if (n.includes('4080') || n.includes('7900 xt')) return 90;
+        if (n.includes('4070') || n.includes('7800') || n.includes('3090') || n.includes('6900')) return 75;
+        if (n.includes('4060') || n.includes('7700') || n.includes('3070') || n.includes('6800')) return 60;
+        if (n.includes('3060') || n.includes('6700') || n.includes('6600')) return 45;
+        if (n.includes('3050') || n.includes('6500')) return 30;
+        return 20;
+    }
+    return 0;
+  };
+
+  const calculateBottleneck = () => {
+    const cpu = currentBuild.parts.CPU;
+    const gpu = currentBuild.parts.GPU;
+    if (!cpu || !gpu) return null;
+
+    const cpuScore = getComponentTier(cpu.name, 'CPU');
+    const gpuScore = getComponentTier(gpu.name, 'GPU');
+    
+    const diff = gpuScore - cpuScore;
+
+    if (diff > 20) return { status: 'critical', msg: '⚠️ CPU Bottleneck: Prosesor terlalu lemah untuk VGA ini!', color: 'text-red-500' };
+    if (diff > 10) return { status: 'warning', msg: '⚠️ Sedikit Bottleneck: CPU agak kewalahan.', color: 'text-yellow-500' };
+    if (cpuScore - gpuScore > 30) return { status: 'info', msg: 'ℹ️ GPU Bottleneck: Prosesor terlalu kuat (mubazir).', color: 'text-blue-400' };
+    return { status: 'good', msg: '✅ Kombinasi Seimbang (Great Match!)', color: 'text-[#39ff14]' };
+  };
+
   const calculateTotal = () => {
     let price = 0;
     let totalTdp = 0; 
@@ -320,15 +358,13 @@ const App = () => {
     if(!element) return;
     
     try {
-      // Gunakan html2canvas untuk memotret element
       const canvas = await html2canvas(element, {
-          scale: 2, // Kualitas tinggi
-          backgroundColor: '#1a1a2e' // Paksa background gelap
+          scale: 2, 
+          backgroundColor: '#1a1a2e' 
       });
       
       const imgData = canvas.toDataURL('image/png');
-      
-      // Buat PDF LANDSCAPE ('l') ukuran A4
+      // SETTING PDF LANDSCAPE ('l' = landscape)
       const pdf = new jsPDF('l', 'mm', 'a4'); 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
@@ -343,6 +379,8 @@ const App = () => {
 
   const generateRecommendation = () => {
     let newParts = {};
+    
+    // 1. BUDGET & POWER RULES
     const budgetRules = {
         'Low': { CPU: 2500000, GPU: 3500000, Motherboard: 1500000, RAM: 800000, Storage: 800000, PSU: 750000, Case: 500000 },
         'Mid': { CPU: 5000000, GPU: 8500000, Motherboard: 3500000, RAM: 2000000, Storage: 2000000, PSU: 2000000, Case: 2000000 },
@@ -357,24 +395,44 @@ const App = () => {
     const currentBudgetLimit = filters.budget === 'Semua' ? budgetRules['High'] : budgetRules[filters.budget];
     const currentPowerLimit = filters.power === 'Semua' ? powerRules['Semua'] : powerRules[filters.power];
 
+    // 2. HELPER PENCARI KANDIDAT
     const getCandidates = (category, additionalFilter = () => true) => {
         let candidates = components.filter(c => {
             if (c.category !== category) return false;
+            // Cek Budget Maksimal
             if (c.price > currentBudgetLimit[category]) return false;
+            // Cek TDP
             if (category === 'CPU' && c.tdp > currentPowerLimit.cpuMaxTdp) return false;
             if (category === 'GPU' && c.tdp > currentPowerLimit.gpuMaxTdp) return false;
             return additionalFilter(c);
         });
+
         if (category === 'CPU' && filters.brand !== 'Semua') candidates = candidates.filter(c => c.name.includes(filters.brand));
         
+        // --- LOGIKA SORTING CERDAS BERDASARKAN BUDGET ---
+        if (filters.budget === 'High') {
+            // Jika HIGH: Urutkan dari TERMAHAL -> TERMURAH, lalu ambil top 40%
+            // Ini mencegah sistem mengambil komponen murah saat budget High
+            candidates.sort((a, b) => b.price - a.price);
+            const cutOff = Math.max(2, Math.floor(candidates.length * 0.4));
+            candidates = candidates.slice(0, cutOff);
+        } else if (filters.budget === 'Low') {
+            // Jika LOW: Urutkan dari TERMURAH -> TERMAHAL
+            candidates.sort((a, b) => a.price - b.price);
+            const cutOff = Math.max(2, Math.floor(candidates.length * 0.6));
+            candidates = candidates.slice(0, cutOff);
+        }
+        
+        // Fallback jika kosong
         if (candidates.length === 0) { 
             const all = components.filter(c => c.category === category && additionalFilter(c));
-            all.sort((a, b) => a.price - b.price);
+            all.sort((a, b) => a.price - b.price); // Ambil yg murah aja biar aman
             return all.slice(0, 3);
         }
         return candidates;
     };
 
+    // 3. EKSEKUSI PEMILIHAN (RANDOM DARI KANDIDAT YG SUDAH DISARING)
     const cpuCandidates = getCandidates('CPU');
     if (cpuCandidates.length > 0) {
         const selectedCPU = cpuCandidates[Math.floor(Math.random() * cpuCandidates.length)];
@@ -416,7 +474,7 @@ const App = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e] p-4">
           <div className="bg-[#252540] p-8 rounded-2xl border border-gray-700 shadow-2xl w-full max-w-md">
               <div className="flex justify-center mb-6">
-                  <div className="w-16 h-16 bg-[#39ff14] rounded-lg flex items-center justify-center text-black font-bold text-3xl shadow-[0_0_20px_#39ff14]">R</div>
+                  <img src="/rigvibes-logo.png" alt="RigVibes Logo" className="w-20 h-20 shadow-[0_0_20px_#39ff14] rounded-xl" />
               </div>
               <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome Back</h2>
               <p className="text-gray-400 text-center mb-8">Masuk untuk mulai merakit PC impianmu</p>
@@ -444,7 +502,7 @@ const App = () => {
   const renderNavbar = () => (
     <nav className="flex justify-between items-center p-6 bg-[#1a1a2e] text-white sticky top-0 z-50 shadow-lg border-b border-gray-800">
       <div className="flex items-center gap-2 cursor-pointer" onClick={() => setView('home')}>
-        <div className="w-8 h-8 bg-[#39ff14] rounded flex items-center justify-center text-black font-bold">R</div>
+        <img src="/rigvibes-logo.png" alt="Logo" className="w-10 h-10 rounded-lg" />
         <h1 className="text-xl font-bold tracking-wider hidden md:block">RIGVIBES</h1>
       </div>
       {currentUser && (
@@ -525,6 +583,7 @@ const App = () => {
 
   const renderBuilder = () => {
     const { price, tdp } = calculateTotal();
+    const bottleneck = calculateBottleneck(); 
     const partsList = [
       { id: 'CPU', icon: <Cpu />, label: 'Processor' },
       { id: 'Motherboard', icon: <LayoutGrid />, label: 'Motherboard' }, 
@@ -542,13 +601,13 @@ const App = () => {
             <div className="h-1 bg-[#39ff14] w-1/3 shadow-[0_0_10px_#39ff14]"></div>
          </div>
 
-         {/* --- WRAPPER ID UNTUK PRINT PDF (Mulai dari Sini) --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF --- */}
          <div id="print-area" className="bg-[#252540] p-8 rounded-2xl border border-gray-700 mb-6">
             
             {/* Header Khusus PDF */}
             <div className="flex items-center justify-between mb-6 border-b border-gray-600 pb-4">
                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#39ff14] rounded flex items-center justify-center text-black font-bold text-xl">R</div>
+                    <img src="/rigvibes-logo.png" alt="Logo" className="w-12 h-12 rounded-lg" />
                     <div>
                         <h1 className="text-2xl font-bold tracking-wider text-white">RIGVIBES</h1>
                         <p className="text-xs text-gray-400">Simulasi Rakit PC Indonesia</p>
@@ -561,7 +620,7 @@ const App = () => {
             </div>
 
             {/* Summary Total */}
-            <div className="grid grid-cols-2 gap-8 mb-6">
+            <div className="grid grid-cols-3 gap-4 mb-6">
                <div className="bg-[#1a1a2e] p-4 rounded-lg border border-gray-600">
                  <p className="text-[#39ff14] font-bold text-sm mb-1">Est Total :</p>
                  <p className="text-2xl font-bold text-white">{formatRupiah(price)}</p>
@@ -570,9 +629,17 @@ const App = () => {
                  <p className="text-[#39ff14] font-bold text-sm mb-1">Est Daya (TDP) :</p>
                  <p className="text-2xl font-bold text-white">{tdp}W</p>
                </div>
+               {/* --- BOTTLENECK STATUS --- */}
+               <div className="bg-[#1a1a2e] p-4 rounded-lg border border-gray-600 flex items-center justify-center text-center">
+                 {bottleneck ? (
+                    <div>
+                        <p className={`font-bold text-sm ${bottleneck.color}`}>{bottleneck.msg}</p>
+                    </div>
+                 ) : <span className="text-gray-500 text-sm">Pilih CPU & GPU untuk cek bottleneck</span>}
+               </div>
             </div>
 
-            {/* List Komponen untuk PDF (Dengan Detail Baru) */}
+            {/* List Komponen untuk PDF */}
             <div className="space-y-3">
                 {partsList.map((part) => (
                     <div key={part.id} className="flex justify-between items-center p-3 bg-[#1a1a2e] rounded border border-gray-600">
@@ -582,7 +649,7 @@ const App = () => {
                                 <span className="text-white font-medium block">
                                     {currentBuild.parts[part.id] ? currentBuild.parts[part.id].name : '-'}
                                 </span>
-                                {/* DETAIL SPESIFIK DI PDF */}
+                                {/* DETAIL SPESIFIK */}
                                 {currentBuild.parts[part.id] && (
                                     <span className="text-[10px] text-gray-500 uppercase tracking-wide">
                                         {part.id === 'CPU' && `Socket: ${currentBuild.parts[part.id].socket} | TDP: ${currentBuild.parts[part.id].tdp}W`}
@@ -602,7 +669,7 @@ const App = () => {
                 ))}
             </div>
          </div>
-         {/* --- WRAPPER ID UNTUK PRINT PDF (Selesai di Sini) --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF --- */}
 
 
          {/* MENU EDITOR (SELECT COMPONENT) */}
