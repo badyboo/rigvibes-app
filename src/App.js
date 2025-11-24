@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGrid, LogIn, LogOut, Shield, Lock, Download, AlertTriangle, CheckCircle } from 'lucide-react';
+import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGrid, LogIn, LogOut, Shield, Lock, Download, FileSignature } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// --- DATASET KOMPONEN ---
+// --- DATASET LENGKAP ---
 const INITIAL_COMPONENTS = [
   { category: 'CPU', name: 'AMD Ryzen 3 3200G (APU)', tdp: 65, socket: 'AM4', price: 962000, ramType: 'DDR4' },
   { category: 'CPU', name: 'AMD Ryzen 5 3400G (APU)', tdp: 65, socket: 'AM4', price: 1100000, ramType: 'DDR4' },
@@ -265,7 +265,7 @@ const App = () => {
       localStorage.removeItem('rigvibes_user');
   };
 
-  // --- LOGIKA BOTTLENECK (HEURISTIC) ---
+  // --- LOGIKA BOTTLENECK ---
   const getComponentTier = (name, category) => {
     const n = name.toLowerCase();
     if (category === 'CPU') {
@@ -344,6 +344,16 @@ const App = () => {
     setView('saved');
   };
 
+  const handleRenameBuild = (id, oldName) => {
+    const newName = prompt("Ganti nama build:", oldName);
+    if (newName && newName.trim() !== "") {
+      const updatedBuilds = savedBuilds.map(b => 
+        b.id === id ? { ...b, name: newName } : b
+      );
+      setSavedBuilds(updatedBuilds);
+    }
+  };
+
   const handleEditBuild = (build) => {
     setCurrentBuild({
         id: build.id, 
@@ -356,19 +366,12 @@ const App = () => {
   const generatePDF = async () => {
     const element = document.getElementById('print-area');
     if(!element) return;
-    
     try {
-      const canvas = await html2canvas(element, {
-          scale: 2, 
-          backgroundColor: '#1a1a2e' 
-      });
-      
+      const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#1a1a2e' });
       const imgData = canvas.toDataURL('image/png');
-      // SETTING PDF LANDSCAPE ('l' = landscape)
       const pdf = new jsPDF('l', 'mm', 'a4'); 
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
       pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`RigVibes-Build-${currentBuild.name}.pdf`);
     } catch (error) {
@@ -377,10 +380,9 @@ const App = () => {
     }
   };
 
+  // --- SMART RECOMMENDATION LOGIC (UPDATED: PRIORITIZE PRICE) ---
   const generateRecommendation = () => {
     let newParts = {};
-    
-    // 1. BUDGET & POWER RULES
     const budgetRules = {
         'Low': { CPU: 2500000, GPU: 3500000, Motherboard: 1500000, RAM: 800000, Storage: 800000, PSU: 750000, Case: 500000 },
         'Mid': { CPU: 5000000, GPU: 8500000, Motherboard: 3500000, RAM: 2000000, Storage: 2000000, PSU: 2000000, Case: 2000000 },
@@ -395,44 +397,37 @@ const App = () => {
     const currentBudgetLimit = filters.budget === 'Semua' ? budgetRules['High'] : budgetRules[filters.budget];
     const currentPowerLimit = filters.power === 'Semua' ? powerRules['Semua'] : powerRules[filters.power];
 
-    // 2. HELPER PENCARI KANDIDAT
     const getCandidates = (category, additionalFilter = () => true) => {
         let candidates = components.filter(c => {
             if (c.category !== category) return false;
-            // Cek Budget Maksimal
             if (c.price > currentBudgetLimit[category]) return false;
-            // Cek TDP
             if (category === 'CPU' && c.tdp > currentPowerLimit.cpuMaxTdp) return false;
             if (category === 'GPU' && c.tdp > currentPowerLimit.gpuMaxTdp) return false;
             return additionalFilter(c);
         });
-
         if (category === 'CPU' && filters.brand !== 'Semua') candidates = candidates.filter(c => c.name.includes(filters.brand));
         
-        // --- LOGIKA SORTING CERDAS BERDASARKAN BUDGET ---
+        // --- LOGIC BARU: SORTING PRIORITAS HARGA ---
         if (filters.budget === 'High') {
-            // Jika HIGH: Urutkan dari TERMAHAL -> TERMURAH, lalu ambil top 40%
-            // Ini mencegah sistem mengambil komponen murah saat budget High
+            // High Budget: Sortir dari MAHAL ke MURAH -> Ambil 40% Teratas
             candidates.sort((a, b) => b.price - a.price);
-            const cutOff = Math.max(2, Math.floor(candidates.length * 0.4));
-            candidates = candidates.slice(0, cutOff);
+            const topTierCount = Math.max(2, Math.floor(candidates.length * 0.4));
+            candidates = candidates.slice(0, topTierCount);
         } else if (filters.budget === 'Low') {
-            // Jika LOW: Urutkan dari TERMURAH -> TERMAHAL
+            // Low Budget: Sortir dari MURAH ke MAHAL -> Ambil 50% Terbawah
             candidates.sort((a, b) => a.price - b.price);
-            const cutOff = Math.max(2, Math.floor(candidates.length * 0.6));
-            candidates = candidates.slice(0, cutOff);
+            const lowTierCount = Math.max(2, Math.floor(candidates.length * 0.5));
+            candidates = candidates.slice(0, lowTierCount);
         }
         
-        // Fallback jika kosong
         if (candidates.length === 0) { 
             const all = components.filter(c => c.category === category && additionalFilter(c));
-            all.sort((a, b) => a.price - b.price); // Ambil yg murah aja biar aman
+            all.sort((a, b) => a.price - b.price); 
             return all.slice(0, 3);
         }
         return candidates;
     };
 
-    // 3. EKSEKUSI PEMILIHAN (RANDOM DARI KANDIDAT YG SUDAH DISARING)
     const cpuCandidates = getCandidates('CPU');
     if (cpuCandidates.length > 0) {
         const selectedCPU = cpuCandidates[Math.floor(Math.random() * cpuCandidates.length)];
@@ -601,7 +596,7 @@ const App = () => {
             <div className="h-1 bg-[#39ff14] w-1/3 shadow-[0_0_10px_#39ff14]"></div>
          </div>
 
-         {/* --- WRAPPER ID UNTUK PRINT PDF --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF (Mulai dari Sini) --- */}
          <div id="print-area" className="bg-[#252540] p-8 rounded-2xl border border-gray-700 mb-6">
             
             {/* Header Khusus PDF */}
@@ -639,7 +634,7 @@ const App = () => {
                </div>
             </div>
 
-            {/* List Komponen untuk PDF */}
+            {/* List Komponen untuk PDF (Dengan Detail) */}
             <div className="space-y-3">
                 {partsList.map((part) => (
                     <div key={part.id} className="flex justify-between items-center p-3 bg-[#1a1a2e] rounded border border-gray-600">
@@ -649,7 +644,7 @@ const App = () => {
                                 <span className="text-white font-medium block">
                                     {currentBuild.parts[part.id] ? currentBuild.parts[part.id].name : '-'}
                                 </span>
-                                {/* DETAIL SPESIFIK */}
+                                {/* DETAIL SPESIFIK DI PDF */}
                                 {currentBuild.parts[part.id] && (
                                     <span className="text-[10px] text-gray-500 uppercase tracking-wide">
                                         {part.id === 'CPU' && `Socket: ${currentBuild.parts[part.id].socket} | TDP: ${currentBuild.parts[part.id].tdp}W`}
@@ -669,7 +664,7 @@ const App = () => {
                 ))}
             </div>
          </div>
-         {/* --- WRAPPER ID UNTUK PRINT PDF --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF (Selesai di Sini) --- */}
 
 
          {/* MENU EDITOR (SELECT COMPONENT) */}
@@ -741,7 +736,15 @@ const App = () => {
               {savedBuilds.map((build) => (
                  <div key={build.id} className="bg-[#252540] p-6 rounded-2xl border border-gray-700 relative overflow-hidden group hover:border-[#39ff14] transition-all">
                     <div className="flex justify-between items-start mb-4 relative z-10">
-                       <h3 className="text-xl font-bold text-[#39ff14] flex items-center gap-2">{build.name} <Monitor size={16}/></h3>
+                       <div className="flex items-center gap-2">
+                           <h3 className="text-xl font-bold text-[#39ff14] flex items-center gap-2">{build.name} <Monitor size={16}/></h3>
+                           {/* TOMBOL RENAME (PENSIL) */}
+                           <FileSignature 
+                               size={16} 
+                               className="text-gray-400 hover:text-white cursor-pointer" 
+                               onClick={() => handleRenameBuild(build.id, build.name)} 
+                           />
+                       </div>
                        <div className="flex gap-2">
                           <div onClick={() => handleEditBuild(build)} className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center cursor-pointer hover:bg-[#39ff14] hover:text-black transition" title="Edit Build Ini">
                              <Edit2 className="w-4 h-4" />
@@ -751,10 +754,28 @@ const App = () => {
                           </div>
                        </div>
                     </div>
+                    
                     <div className="grid grid-cols-2 gap-8 relative z-10 mb-6">
                        <div><p className="text-[#39ff14] text-xs font-bold">Est Total :</p><p className="text-xl font-bold">{formatRupiah(build.totalPrice)}</p></div>
                        <div><p className="text-[#39ff14] text-xs font-bold">Daya :</p><p className="text-xl font-bold">{build.totalWattage}W</p></div>
                     </div>
+
+                    {/* --- NEW: INFO CPU & GPU DI CARD --- */}
+                    <div className="mt-4 border-t border-gray-600 pt-3 space-y-1">
+                       {build.parts.CPU && (
+                           <div className="flex items-center gap-2 text-xs">
+                               <span className="text-gray-400 font-bold w-8">CPU:</span>
+                               <span className="text-white truncate">{build.parts.CPU.name}</span>
+                           </div>
+                       )}
+                       {build.parts.GPU && (
+                           <div className="flex items-center gap-2 text-xs">
+                               <span className="text-gray-400 font-bold w-8">GPU:</span>
+                               <span className="text-white truncate">{build.parts.GPU.name}</span>
+                           </div>
+                       )}
+                    </div>
+
                  </div>
               ))}
            </div>
