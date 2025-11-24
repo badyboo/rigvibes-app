@@ -3,7 +3,7 @@ import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGr
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// --- DATASET LENGKAP (FULL) ---
+// --- DATASET KOMPONEN ---
 const INITIAL_COMPONENTS = [
   { category: 'CPU', name: 'AMD Ryzen 3 3200G (APU)', tdp: 65, socket: 'AM4', price: 962000, ramType: 'DDR4' },
   { category: 'CPU', name: 'AMD Ryzen 5 3400G (APU)', tdp: 65, socket: 'AM4', price: 1100000, ramType: 'DDR4' },
