@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGrid, LogIn, LogOut, Shield, Lock, Download, FileSignature } from 'lucide-react';
+import { Trash2, Edit2, Cpu, Zap, Save, User, Monitor, HardDrive, LayoutGrid, LogIn, LogOut, Shield, Lock, Download, FileSignature } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// --- DATASET ---
+// --- DATASET LENGKAP (DENGAN SPEK TEKNIS: CORES, THREADS, VRAM) ---
 const INITIAL_COMPONENTS = [
   // --- AMD AM4 ---
   { category: 'CPU', name: 'AMD Ryzen 3 3200G (APU)', tdp: 65, socket: 'AM4', price: 962000, ramType: 'DDR4', cores: 4, threads: 4 },
@@ -401,7 +401,7 @@ const App = () => {
     }
   };
 
-  // --- SMART RECOMMENDATION LOGIC (UPDATED: PURPOSE-BASED + SPECS) ---
+  // --- SMART RECOMMENDATION LOGIC ---
   const generateRecommendation = () => {
     let newParts = {};
     const budgetRules = {
@@ -425,17 +425,14 @@ const App = () => {
             if (category === 'CPU' && c.tdp > currentPowerLimit.cpuMaxTdp) return false;
             if (category === 'GPU' && c.tdp > currentPowerLimit.gpuMaxTdp) return false;
             
-            // --- FILTER TAMBAHAN: EDITING & GAMING (LOGIC BARU) ---
+            // --- FILTER TAMBAHAN: EDITING & GAMING ---
             if (filters.purpose === 'Editing' && category === 'CPU' && c.cores) {
-                 // Editing butuh min 6 core (ideal 8+)
                  if (c.cores < 6) return false;
             }
             if (filters.purpose === 'Editing' && category === 'GPU' && c.vram) {
-                 // Editing 4K butuh VRAM min 8GB
                  if (c.vram < 8) return false;
             }
             if (filters.purpose === 'Gaming' && category === 'GPU' && c.vram) {
-                 // Gaming Modern butuh VRAM min 8GB (untuk Mid-High)
                  if (filters.budget !== 'Low' && c.vram < 8) return false;
             }
 
@@ -444,35 +441,20 @@ const App = () => {
 
         if (category === 'CPU' && filters.brand !== 'Semua') candidates = candidates.filter(c => c.name.includes(filters.brand));
         
-        // --- LOGIC SORTING (PENGURUTAN CERDAS) ---
+        // --- LOGIC SORTING ---
         candidates.sort((a, b) => {
-            // 1. Logic Office: Selalu cari yang Termurah
-            if (filters.purpose === 'Office') {
-                return a.price - b.price;
-            }
-
-            // 2. Logic Editing: Prioritaskan CORES (CPU) & VRAM (GPU)
+            if (filters.purpose === 'Office') return a.price - b.price;
             if (filters.purpose === 'Editing') {
-                if (category === 'CPU') return b.cores - a.cores; // Core terbanyak
-                if (category === 'GPU') return b.vram - a.vram;   // VRAM terbanyak
+                if (category === 'CPU') return b.cores - a.cores; 
+                if (category === 'GPU') return b.vram - a.vram;   
             }
-
-            // 3. Logic Gaming: Prioritaskan Harga Mahal (Performa) untuk GPU
-            if (filters.purpose === 'Gaming' && category === 'GPU') {
-                return b.price - a.price; 
-            }
-
-            // 4. Default Budget Sorting (Jika tidak masuk logic di atas)
-            if (filters.budget === 'High') return b.price - a.price; // Mahal -> Murah
-            if (filters.budget === 'Low') return a.price - b.price; // Murah -> Mahal
-            
-            return 0; // Random (Mid)
+            if (filters.purpose === 'Gaming' && category === 'GPU') return b.price - a.price; 
+            if (filters.budget === 'High') return b.price - a.price; 
+            if (filters.budget === 'Low') return a.price - b.price; 
+            return 0; 
         });
 
-        // Ambil porsi terbaik (Top Candidates)
         const cutOff = Math.max(3, Math.floor(candidates.length * 0.4));
-        // Jika Office/Low, ambil dari atas (setelah disortir murah)
-        // Jika Gaming/High, ambil dari atas (setelah disortir mahal/spek)
         candidates = candidates.slice(0, cutOff);
         
         if (candidates.length === 0) { 
@@ -651,10 +633,8 @@ const App = () => {
             <div className="h-1 bg-[#39ff14] w-1/3 shadow-[0_0_10px_#39ff14]"></div>
          </div>
 
-         {/* --- WRAPPER ID UNTUK PRINT PDF (START) --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF --- */}
          <div id="print-area" className="bg-[#252540] p-8 rounded-2xl border border-gray-700 mb-6">
-            
-            {/* Header Khusus PDF */}
             <div className="flex items-center justify-between mb-6 border-b border-gray-600 pb-4">
                  <div className="flex items-center gap-3">
                     <img src="/rigvibes-logo.png" alt="Logo" className="w-12 h-12 rounded-lg" />
@@ -669,7 +649,6 @@ const App = () => {
                  </div>
             </div>
 
-            {/* Summary Total */}
             <div className="grid grid-cols-3 gap-4 mb-6">
                <div className="bg-[#1a1a2e] p-4 rounded-lg border border-gray-600">
                  <p className="text-[#39ff14] font-bold text-sm mb-1">Est Total :</p>
@@ -679,7 +658,6 @@ const App = () => {
                  <p className="text-[#39ff14] font-bold text-sm mb-1">Est Daya (TDP) :</p>
                  <p className="text-2xl font-bold text-white">{tdp}W</p>
                </div>
-               {/* --- BOTTLENECK STATUS --- */}
                <div className="bg-[#1a1a2e] p-4 rounded-lg border border-gray-600 flex items-center justify-center text-center">
                  {bottleneck ? (
                     <div>
@@ -689,7 +667,6 @@ const App = () => {
                </div>
             </div>
 
-            {/* List Komponen untuk PDF (Dengan Detail) */}
             <div className="space-y-3">
                 {partsList.map((part) => (
                     <div key={part.id} className="flex justify-between items-center p-3 bg-[#1a1a2e] rounded border border-gray-600">
@@ -699,15 +676,14 @@ const App = () => {
                                 <span className="text-white font-medium block">
                                     {currentBuild.parts[part.id] ? currentBuild.parts[part.id].name : '-'}
                                 </span>
-                                {/* DETAIL SPESIFIK DI PDF */}
                                 {currentBuild.parts[part.id] && (
                                     <span className="text-[10px] text-gray-500 uppercase tracking-wide">
-                                        {part.id === 'CPU' && `Socket: ${currentBuild.parts[part.id].socket} | TDP: ${currentBuild.parts[part.id].tdp}W`}
+                                        {part.id === 'CPU' && `Socket: ${currentBuild.parts[part.id].socket} | ${currentBuild.parts[part.id].cores}C/${currentBuild.parts[part.id].threads}T | TDP: ${currentBuild.parts[part.id].tdp}W`}
                                         {part.id === 'Motherboard' && `Socket: ${currentBuild.parts[part.id].socket} | ${currentBuild.parts[part.id].ramType}`}
                                         {part.id === 'RAM' && `${currentBuild.parts[part.id].type}`}
                                         {part.id === 'Storage' && `${currentBuild.parts[part.id].capacity} GB`}
                                         {part.id === 'PSU' && `${currentBuild.parts[part.id].wattage} W`}
-                                        {part.id === 'GPU' && `TDP: ${currentBuild.parts[part.id].tdp}W`}
+                                        {part.id === 'GPU' && `VRAM: ${currentBuild.parts[part.id].vram}GB | TDP: ${currentBuild.parts[part.id].tdp}W`}
                                     </span>
                                 )}
                             </div>
@@ -719,8 +695,6 @@ const App = () => {
                 ))}
             </div>
          </div>
-         {/* --- WRAPPER ID UNTUK PRINT PDF (END) --- */}
-
 
          {/* MENU EDITOR (SELECT COMPONENT) */}
          <div className="bg-[#202033] rounded-2xl p-6 border border-gray-800">
@@ -737,14 +711,13 @@ const App = () => {
                                 <span className="font-bold text-white">{currentBuild.parts[part.id].name}</span>
                                 <span className="text-[#39ff14] text-sm">{formatRupiah(currentBuild.parts[part.id].price)}</span>
                            </div>
-                           {/* DETAIL SPESIFIK DI UI EDITOR */}
                            <span className="text-xs text-gray-500 block mt-0.5">
-                                {part.id === 'CPU' && `Socket: ${currentBuild.parts[part.id].socket} | TDP: ${currentBuild.parts[part.id].tdp}W`}
+                                {part.id === 'CPU' && `Socket: ${currentBuild.parts[part.id].socket} | ${currentBuild.parts[part.id].cores}C/${currentBuild.parts[part.id].threads}T | TDP: ${currentBuild.parts[part.id].tdp}W`}
                                 {part.id === 'Motherboard' && `Socket: ${currentBuild.parts[part.id].socket} | ${currentBuild.parts[part.id].ramType}`}
                                 {part.id === 'RAM' && `${currentBuild.parts[part.id].type}`}
                                 {part.id === 'Storage' && `${currentBuild.parts[part.id].capacity} GB`}
                                 {part.id === 'PSU' && `${currentBuild.parts[part.id].wattage} W`}
-                                {part.id === 'GPU' && `TDP: ${currentBuild.parts[part.id].tdp}W`}
+                                {part.id === 'GPU' && `VRAM: ${currentBuild.parts[part.id].vram}GB | TDP: ${currentBuild.parts[part.id].tdp}W`}
                            </span>
                         </div>
                       ) : (<span className="text-gray-500 text-sm italic">Belum dipilih</span>)}
@@ -756,7 +729,11 @@ const App = () => {
                     }} value={currentBuild.parts[part.id]?.name || ''}>
                     <option value="">Pilih {part.label}...</option>
                     {getCompatibleParts(part.id).map((comp, idx) => (
-                       <option key={idx} value={comp.name}>{comp.name} - {formatRupiah(comp.price)}</option>
+                       <option key={idx} value={comp.name}>
+                           {comp.name} - {formatRupiah(comp.price)}
+                           {comp.cores ? ` (${comp.cores}C/${comp.threads}T)` : ''}
+                           {comp.vram ? ` (${comp.vram}GB VRAM)` : ''}
+                       </option>
                     ))}
                  </select>
               </div>
@@ -793,7 +770,6 @@ const App = () => {
                     <div className="flex justify-between items-start mb-4 relative z-10">
                        <div className="flex items-center gap-2">
                            <h3 className="text-xl font-bold text-[#39ff14] flex items-center gap-2">{build.name} <Monitor size={16}/></h3>
-                           {/* TOMBOL RENAME (PENSIL) */}
                            <FileSignature 
                                size={16} 
                                className="text-gray-400 hover:text-white cursor-pointer" 
@@ -815,18 +791,19 @@ const App = () => {
                        <div><p className="text-[#39ff14] text-xs font-bold">Daya :</p><p className="text-xl font-bold">{build.totalWattage}W</p></div>
                     </div>
 
-                    {/* --- NEW: INFO CPU & GPU DI CARD --- */}
                     <div className="mt-4 border-t border-gray-600 pt-3 space-y-1">
                        {build.parts.CPU && (
                            <div className="flex items-center gap-2 text-xs">
                                <span className="text-gray-400 font-bold w-8">CPU:</span>
                                <span className="text-white truncate">{build.parts.CPU.name}</span>
+                               <span className="text-[#39ff14]">({build.parts.CPU.cores}C/{build.parts.CPU.threads}T)</span>
                            </div>
                        )}
                        {build.parts.GPU && (
                            <div className="flex items-center gap-2 text-xs">
                                <span className="text-gray-400 font-bold w-8">GPU:</span>
                                <span className="text-white truncate">{build.parts.GPU.name}</span>
+                               <span className="text-[#39ff14]">({build.parts.GPU.vram}GB)</span>
                            </div>
                        )}
                     </div>
