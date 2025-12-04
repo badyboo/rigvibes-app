@@ -3,83 +3,96 @@ import { Trash2, Edit2, Cpu, Zap, Save, User, Bell, Monitor, HardDrive, LayoutGr
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
-// --- DATASET LENGKAP ---
+// --- DATASET ---
 const INITIAL_COMPONENTS = [
-  { category: 'CPU', name: 'AMD Ryzen 3 3200G (APU)', tdp: 65, socket: 'AM4', price: 962000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 5 3400G (APU)', tdp: 65, socket: 'AM4', price: 1100000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 5 4500', tdp: 65, socket: 'AM4', price: 1145000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 5 5500', tdp: 65, socket: 'AM4', price: 1440000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 5 5600G (APU)', tdp: 65, socket: 'AM4', price: 2187000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 5 5600X', tdp: 65, socket: 'AM4', price: 1685000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 7 5700G (APU)', tdp: 65, socket: 'AM4', price: 2975000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 7 5800X', tdp: 105, socket: 'AM4', price: 2449000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 9 5900X', tdp: 105, socket: 'AM4', price: 4990001, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 9 5950X', tdp: 105, socket: 'AM4', price: 3845000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'AMD Ryzen 5 7600', tdp: 65, socket: 'AM5', price: 3290000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 5 7600X', tdp: 105, socket: 'AM5', price: 3495081, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 7 7700', tdp: 65, socket: 'AM5', price: 5695000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 7 7700X', tdp: 105, socket: 'AM5', price: 5590000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 7 7800X3D', tdp: 120, socket: 'AM5', price: 5605000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 9 7900X', tdp: 170, socket: 'AM5', price: 6489000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 9 7950X', tdp: 170, socket: 'AM5', price: 9850000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'AMD Ryzen 9 7950X3D', tdp: 170, socket: 'AM5', price: 9599001, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i5-10600K', tdp: 125, socket: 'LGA1200', price: 2170000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i5-11600K', tdp: 125, socket: 'LGA1200', price: 3842000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i7-11700K', tdp: 125, socket: 'LGA1200', price: 5305000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i7-11700KF', tdp: 125, socket: 'LGA1200', price: 4640000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i9-10900K', tdp: 125, socket: 'LGA1200', price: 3899000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i9-10900KF', tdp: 125, socket: 'LGA1200', price: 7078000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i9-11900K', tdp: 125, socket: 'LGA1200', price: 3975000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i9-11900KF', tdp: 125, socket: 'LGA1200', price: 3730000, ramType: 'DDR4' },
-  { category: 'CPU', name: 'Intel Core i5-12400', tdp: 65, socket: 'LGA1700', price: 2440000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i5-12600K', tdp: 125, socket: 'LGA1700', price: 2993000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i5-13400', tdp: 65, socket: 'LGA1700', price: 3185000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i5-13600K', tdp: 125, socket: 'LGA1700', price: 4625000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i5-13600KF', tdp: 125, socket: 'LGA1700', price: 5199000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i5-14600K', tdp: 125, socket: 'LGA1700', price: 3590000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i7-12700K', tdp: 125, socket: 'LGA1700', price: 4000000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i7-12700KF', tdp: 125, socket: 'LGA1700', price: 4619000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i7-13700K', tdp: 125, socket: 'LGA1700', price: 6688000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i7-14700K', tdp: 125, socket: 'LGA1700', price: 6160000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i9-12900K', tdp: 125, socket: 'LGA1700', price: 7065000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i9-12900KF', tdp: 125, socket: 'LGA1700', price: 6377000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i9-12900KS', tdp: 150, socket: 'LGA1700', price: 5590000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i9-13900K', tdp: 125, socket: 'LGA1700', price: 7499001, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i9-13900KS', tdp: 150, socket: 'LGA1700', price: 12095000, ramType: 'DDR5' },
-  { category: 'CPU', name: 'Intel Core i9-14900K', tdp: 125, socket: 'LGA1700', price: 7515000, ramType: 'DDR5' },
-  { category: 'GPU', name: 'NVIDIA RTX 3050', tdp: 130, price: 3300000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3060', tdp: 170, price: 4200000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3060 Ti', tdp: 200, price: 5300000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3070', tdp: 220, price: 6900000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3070 Ti', tdp: 290, price: 8200000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3080', tdp: 320, price: 10400000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3080 Ti', tdp: 350, price: 12900000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3090', tdp: 350, price: 18500000 },
-  { category: 'GPU', name: 'NVIDIA RTX 3090 Ti', tdp: 450, price: 23500000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4060', tdp: 115, price: 4300000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4060 Ti', tdp: 160, price: 6100000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4070', tdp: 200, price: 8200000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4070 Super', tdp: 220, price: 9300000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4070 Ti', tdp: 285, price: 11800000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4070 Ti Super', tdp: 295, price: 12900000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4080', tdp: 320, price: 18500000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4080 Super', tdp: 320, price: 20900000 },
-  { category: 'GPU', name: 'NVIDIA RTX 4090', tdp: 450, price: 32500000 },
-  { category: 'GPU', name: 'AMD RX 6600', tdp: 132, price: 2600000 },
-  { category: 'GPU', name: 'AMD RX 6600 XT', tdp: 160, price: 3400000 },
-  { category: 'GPU', name: 'AMD RX 6650 XT', tdp: 176, price: 4200000 },
-  { category: 'GPU', name: 'AMD RX 6700 XT', tdp: 230, price: 5200000 },
-  { category: 'GPU', name: 'AMD RX 6750 XT', tdp: 250, price: 6200000 },
-  { category: 'GPU', name: 'AMD RX 6800', tdp: 250, price: 6800000 },
-  { category: 'GPU', name: 'AMD RX 6800 XT', tdp: 300, price: 7800000 },
-  { category: 'GPU', name: 'AMD RX 6900 XT', tdp: 300, price: 9800000 },
-  { category: 'GPU', name: 'AMD RX 7600', tdp: 165, price: 3800000 },
-  { category: 'GPU', name: 'AMD RX 7600 XT', tdp: 190, price: 4500000 },
-  { category: 'GPU', name: 'AMD RX 7700 XT', tdp: 245, price: 6500000 },
-  { category: 'GPU', name: 'AMD RX 7800 XT', tdp: 263, price: 8200000 },
-  { category: 'GPU', name: 'AMD RX 7900 GRE', tdp: 260, price: 9500000 },
-  { category: 'GPU', name: 'AMD RX 7900 XT', tdp: 315, price: 12500000 },
-  { category: 'GPU', name: 'AMD RX 7900 XTX', tdp: 355, price: 11040000 },
+  // --- AMD AM4 ---
+  { category: 'CPU', name: 'AMD Ryzen 3 3200G (APU)', tdp: 65, socket: 'AM4', price: 962000, ramType: 'DDR4', cores: 4, threads: 4 },
+  { category: 'CPU', name: 'AMD Ryzen 5 3400G (APU)', tdp: 65, socket: 'AM4', price: 1100000, ramType: 'DDR4', cores: 4, threads: 8 },
+  { category: 'CPU', name: 'AMD Ryzen 5 4500', tdp: 65, socket: 'AM4', price: 1145000, ramType: 'DDR4', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'AMD Ryzen 5 5500', tdp: 65, socket: 'AM4', price: 1440000, ramType: 'DDR4', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'AMD Ryzen 5 5600G (APU)', tdp: 65, socket: 'AM4', price: 2187000, ramType: 'DDR4', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'AMD Ryzen 5 5600X', tdp: 65, socket: 'AM4', price: 1685000, ramType: 'DDR4', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'AMD Ryzen 7 5700G (APU)', tdp: 65, socket: 'AM4', price: 2975000, ramType: 'DDR4', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'AMD Ryzen 7 5800X', tdp: 105, socket: 'AM4', price: 2449000, ramType: 'DDR4', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'AMD Ryzen 9 5900X', tdp: 105, socket: 'AM4', price: 4990001, ramType: 'DDR4', cores: 12, threads: 24 },
+  { category: 'CPU', name: 'AMD Ryzen 9 5950X', tdp: 105, socket: 'AM4', price: 3845000, ramType: 'DDR4', cores: 16, threads: 32 },
+  
+  // --- AMD AM5 ---
+  { category: 'CPU', name: 'AMD Ryzen 5 7600', tdp: 65, socket: 'AM5', price: 3290000, ramType: 'DDR5', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'AMD Ryzen 5 7600X', tdp: 105, socket: 'AM5', price: 3495081, ramType: 'DDR5', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'AMD Ryzen 7 7700', tdp: 65, socket: 'AM5', price: 5695000, ramType: 'DDR5', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'AMD Ryzen 7 7700X', tdp: 105, socket: 'AM5', price: 5590000, ramType: 'DDR5', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'AMD Ryzen 7 7800X3D', tdp: 120, socket: 'AM5', price: 5605000, ramType: 'DDR5', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'AMD Ryzen 9 7900X', tdp: 170, socket: 'AM5', price: 6489000, ramType: 'DDR5', cores: 12, threads: 24 },
+  { category: 'CPU', name: 'AMD Ryzen 9 7950X', tdp: 170, socket: 'AM5', price: 9850000, ramType: 'DDR5', cores: 16, threads: 32 },
+  { category: 'CPU', name: 'AMD Ryzen 9 7950X3D', tdp: 170, socket: 'AM5', price: 9599001, ramType: 'DDR5', cores: 16, threads: 32 },
+
+  // --- Intel LGA1200 ---
+  { category: 'CPU', name: 'Intel Core i5-10600K', tdp: 125, socket: 'LGA1200', price: 2170000, ramType: 'DDR4', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'Intel Core i5-11600K', tdp: 125, socket: 'LGA1200', price: 3842000, ramType: 'DDR4', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'Intel Core i7-11700K', tdp: 125, socket: 'LGA1200', price: 5305000, ramType: 'DDR4', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'Intel Core i7-11700KF', tdp: 125, socket: 'LGA1200', price: 4640000, ramType: 'DDR4', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'Intel Core i9-10900K', tdp: 125, socket: 'LGA1200', price: 3899000, ramType: 'DDR4', cores: 10, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i9-10900KF', tdp: 125, socket: 'LGA1200', price: 7078000, ramType: 'DDR4', cores: 10, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i9-11900K', tdp: 125, socket: 'LGA1200', price: 3975000, ramType: 'DDR4', cores: 8, threads: 16 },
+  { category: 'CPU', name: 'Intel Core i9-11900KF', tdp: 125, socket: 'LGA1200', price: 3730000, ramType: 'DDR4', cores: 8, threads: 16 },
+
+  // --- Intel LGA1700 ---
+  { category: 'CPU', name: 'Intel Core i5-12400', tdp: 65, socket: 'LGA1700', price: 2440000, ramType: 'DDR5', cores: 6, threads: 12 },
+  { category: 'CPU', name: 'Intel Core i5-12600K', tdp: 125, socket: 'LGA1700', price: 2993000, ramType: 'DDR5', cores: 10, threads: 16 },
+  { category: 'CPU', name: 'Intel Core i5-13400', tdp: 65, socket: 'LGA1700', price: 3185000, ramType: 'DDR5', cores: 10, threads: 16 },
+  { category: 'CPU', name: 'Intel Core i5-13600K', tdp: 125, socket: 'LGA1700', price: 4625000, ramType: 'DDR5', cores: 14, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i5-13600KF', tdp: 125, socket: 'LGA1700', price: 5199000, ramType: 'DDR5', cores: 14, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i5-14600K', tdp: 125, socket: 'LGA1700', price: 3590000, ramType: 'DDR5', cores: 14, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i7-12700K', tdp: 125, socket: 'LGA1700', price: 4000000, ramType: 'DDR5', cores: 12, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i7-12700KF', tdp: 125, socket: 'LGA1700', price: 4619000, ramType: 'DDR5', cores: 12, threads: 20 },
+  { category: 'CPU', name: 'Intel Core i7-13700K', tdp: 125, socket: 'LGA1700', price: 6688000, ramType: 'DDR5', cores: 16, threads: 24 },
+  { category: 'CPU', name: 'Intel Core i7-14700K', tdp: 125, socket: 'LGA1700', price: 6160000, ramType: 'DDR5', cores: 20, threads: 28 },
+  { category: 'CPU', name: 'Intel Core i9-12900K', tdp: 125, socket: 'LGA1700', price: 7065000, ramType: 'DDR5', cores: 16, threads: 24 },
+  { category: 'CPU', name: 'Intel Core i9-12900KF', tdp: 125, socket: 'LGA1700', price: 6377000, ramType: 'DDR5', cores: 16, threads: 24 },
+  { category: 'CPU', name: 'Intel Core i9-12900KS', tdp: 150, socket: 'LGA1700', price: 5590000, ramType: 'DDR5', cores: 16, threads: 24 },
+  { category: 'CPU', name: 'Intel Core i9-13900K', tdp: 125, socket: 'LGA1700', price: 7499001, ramType: 'DDR5', cores: 24, threads: 32 },
+  { category: 'CPU', name: 'Intel Core i9-13900KS', tdp: 150, socket: 'LGA1700', price: 12095000, ramType: 'DDR5', cores: 24, threads: 32 },
+  { category: 'CPU', name: 'Intel Core i9-14900K', tdp: 125, socket: 'LGA1700', price: 7515000, ramType: 'DDR5', cores: 24, threads: 32 },
+
+  // --- NVIDIA GPUs ---
+  { category: 'GPU', name: 'NVIDIA RTX 3050', tdp: 130, price: 3300000, vram: 8 },
+  { category: 'GPU', name: 'NVIDIA RTX 3060', tdp: 170, price: 4200000, vram: 12 },
+  { category: 'GPU', name: 'NVIDIA RTX 3060 Ti', tdp: 200, price: 5300000, vram: 8 },
+  { category: 'GPU', name: 'NVIDIA RTX 3070', tdp: 220, price: 6900000, vram: 8 },
+  { category: 'GPU', name: 'NVIDIA RTX 3070 Ti', tdp: 290, price: 8200000, vram: 8 },
+  { category: 'GPU', name: 'NVIDIA RTX 3080', tdp: 320, price: 10400000, vram: 10 },
+  { category: 'GPU', name: 'NVIDIA RTX 3080 Ti', tdp: 350, price: 12900000, vram: 12 },
+  { category: 'GPU', name: 'NVIDIA RTX 3090', tdp: 350, price: 18500000, vram: 24 },
+  { category: 'GPU', name: 'NVIDIA RTX 3090 Ti', tdp: 450, price: 23500000, vram: 24 },
+  { category: 'GPU', name: 'NVIDIA RTX 4060', tdp: 115, price: 4300000, vram: 8 },
+  { category: 'GPU', name: 'NVIDIA RTX 4060 Ti', tdp: 160, price: 6100000, vram: 8 },
+  { category: 'GPU', name: 'NVIDIA RTX 4070', tdp: 200, price: 8200000, vram: 12 },
+  { category: 'GPU', name: 'NVIDIA RTX 4070 Super', tdp: 220, price: 9300000, vram: 12 },
+  { category: 'GPU', name: 'NVIDIA RTX 4070 Ti', tdp: 285, price: 11800000, vram: 12 },
+  { category: 'GPU', name: 'NVIDIA RTX 4070 Ti Super', tdp: 295, price: 12900000, vram: 16 },
+  { category: 'GPU', name: 'NVIDIA RTX 4080', tdp: 320, price: 18500000, vram: 16 },
+  { category: 'GPU', name: 'NVIDIA RTX 4080 Super', tdp: 320, price: 20900000, vram: 16 },
+  { category: 'GPU', name: 'NVIDIA RTX 4090', tdp: 450, price: 32500000, vram: 24 },
+
+  // --- AMD GPUs ---
+  { category: 'GPU', name: 'AMD RX 6600', tdp: 132, price: 2600000, vram: 8 },
+  { category: 'GPU', name: 'AMD RX 6600 XT', tdp: 160, price: 3400000, vram: 8 },
+  { category: 'GPU', name: 'AMD RX 6650 XT', tdp: 176, price: 4200000, vram: 8 },
+  { category: 'GPU', name: 'AMD RX 6700 XT', tdp: 230, price: 5200000, vram: 12 },
+  { category: 'GPU', name: 'AMD RX 6750 XT', tdp: 250, price: 6200000, vram: 12 },
+  { category: 'GPU', name: 'AMD RX 6800', tdp: 250, price: 6800000, vram: 16 },
+  { category: 'GPU', name: 'AMD RX 6800 XT', tdp: 300, price: 7800000, vram: 16 },
+  { category: 'GPU', name: 'AMD RX 6900 XT', tdp: 300, price: 9800000, vram: 16 },
+  { category: 'GPU', name: 'AMD RX 7600', tdp: 165, price: 3800000, vram: 8 },
+  { category: 'GPU', name: 'AMD RX 7600 XT', tdp: 190, price: 4500000, vram: 16 },
+  { category: 'GPU', name: 'AMD RX 7700 XT', tdp: 245, price: 6500000, vram: 12 },
+  { category: 'GPU', name: 'AMD RX 7800 XT', tdp: 263, price: 8200000, vram: 16 },
+  { category: 'GPU', name: 'AMD RX 7900 GRE', tdp: 260, price: 9500000, vram: 16 },
+  { category: 'GPU', name: 'AMD RX 7900 XT', tdp: 315, price: 12500000, vram: 20 },
+  { category: 'GPU', name: 'AMD RX 7900 XTX', tdp: 355, price: 11040000, vram: 24 },
+
+  // --- MOTHERBOARD ---
   { category: 'Motherboard', name: 'ASRock B450M Pro4', socket: 'AM4', ramType: 'DDR4', price: 950000 },
   { category: 'Motherboard', name: 'ASRock Fatal1ty B450 Gaming-ITX/ac', socket: 'AM4', ramType: 'DDR4', price: 1350000 },
   { category: 'Motherboard', name: 'ASUS TUF B450-PLUS Gaming', socket: 'AM4', ramType: 'DDR4', price: 1100000 },
@@ -116,6 +129,8 @@ const INITIAL_COMPONENTS = [
   { category: 'Motherboard', name: 'ASRock Z790 Taichi', socket: 'LGA1700', ramType: 'DDR5', price: 8800000 },
   { category: 'Motherboard', name: 'ASUS ROG Maximus Z790 Hero', socket: 'LGA1700', ramType: 'DDR5', price: 10700000 },
   { category: 'Motherboard', name: 'MSI Z790 Carbon WiFi', socket: 'LGA1700', ramType: 'DDR5', price: 7500000 },
+
+  // --- RAM ---
   { category: 'RAM', name: 'Corsair Vengeance LPX 16GB (2x8GB) 3200MHz', type: 'DDR4', price: 750000 },
   { category: 'RAM', name: 'G.Skill Trident Z Neo 32GB (2x16GB) 3600MHz', type: 'DDR4', price: 1850000 },
   { category: 'RAM', name: 'Kingston Fury Beast 8GB (1x8GB) 3200MHz', type: 'DDR4', price: 450000 },
@@ -136,6 +151,8 @@ const INITIAL_COMPONENTS = [
   { category: 'RAM', name: 'Corsair Dominator Platinum RGB 32GB (2x16GB) 5600MHz', type: 'DDR5', price: 3500000 },
   { category: 'RAM', name: 'G.Skill Trident Z5 Neo 32GB (2x16GB) 6000MHz', type: 'DDR5', price: 3300000 },
   { category: 'RAM', name: 'Kingston Fury Renegade 32GB (2x16GB) 6400MHz', type: 'DDR5', price: 3600000 },
+
+  // --- PSU ---
   { category: 'PSU', name: 'ASUS ROG Strix 750W', wattage: 750, price: 2335000 },
   { category: 'PSU', name: 'ASUS ROG Loki SFX-L 850W', wattage: 850, price: 2799000 },
   { category: 'PSU', name: 'Cooler Master V850 SFX Gold', wattage: 850, price: 2193000 },
@@ -154,6 +171,8 @@ const INITIAL_COMPONENTS = [
   { category: 'PSU', name: 'SilverStone SX650-G', wattage: 650, price: 1650000 },
   { category: 'PSU', name: 'be quiet! Pure Power 11 500W', wattage: 500, price: 808000 },
   { category: 'PSU', name: 'be quiet! Straight Power 11 750W', wattage: 750, price: 1850000 },
+
+  // --- STORAGE ---
   { category: 'Storage', name: 'Samsung 870 EVO', capacity: 500, price: 699000 },
   { category: 'Storage', name: 'Samsung 870 QVO', capacity: 1000, price: 765000 },
   { category: 'Storage', name: 'Samsung 970 EVO Plus', capacity: 500, price: 1420000 },
@@ -174,6 +193,8 @@ const INITIAL_COMPONENTS = [
   { category: 'Storage', name: 'Crucial P5 Plus', capacity: 1000, price: 1720000 },
   { category: 'Storage', name: 'ADATA SU800 M.2', capacity: 512, price: 450000 },
   { category: 'Storage', name: 'ADATA XPG S70 Blade', capacity: 1000, price: 1300000 },
+
+  // --- CASE ---
   { category: 'Case', name: 'GAMEMAX Infinity Mini', formFactor: 'M-ATX', price: 390000 },
   { category: 'Case', name: 'Raptor Glass Flow A Series', formFactor: 'M-ATX / ITX', price: 289000 },
   { category: 'Case', name: 'GAMEMAX Infinity Mini White/Black', formFactor: 'M-ATX', price: 390000 },
@@ -380,7 +401,7 @@ const App = () => {
     }
   };
 
-  // --- SMART RECOMMENDATION LOGIC (UPDATED: PRIORITIZE PRICE) ---
+  // --- SMART RECOMMENDATION LOGIC (UPDATED: PURPOSE-BASED + SPECS) ---
   const generateRecommendation = () => {
     let newParts = {};
     const budgetRules = {
@@ -403,22 +424,56 @@ const App = () => {
             if (c.price > currentBudgetLimit[category]) return false;
             if (category === 'CPU' && c.tdp > currentPowerLimit.cpuMaxTdp) return false;
             if (category === 'GPU' && c.tdp > currentPowerLimit.gpuMaxTdp) return false;
+            
+            // --- FILTER TAMBAHAN: EDITING & GAMING (LOGIC BARU) ---
+            if (filters.purpose === 'Editing' && category === 'CPU' && c.cores) {
+                 // Editing butuh min 6 core (ideal 8+)
+                 if (c.cores < 6) return false;
+            }
+            if (filters.purpose === 'Editing' && category === 'GPU' && c.vram) {
+                 // Editing 4K butuh VRAM min 8GB
+                 if (c.vram < 8) return false;
+            }
+            if (filters.purpose === 'Gaming' && category === 'GPU' && c.vram) {
+                 // Gaming Modern butuh VRAM min 8GB (untuk Mid-High)
+                 if (filters.budget !== 'Low' && c.vram < 8) return false;
+            }
+
             return additionalFilter(c);
         });
+
         if (category === 'CPU' && filters.brand !== 'Semua') candidates = candidates.filter(c => c.name.includes(filters.brand));
         
-        // --- LOGIC BARU: SORTING PRIORITAS HARGA ---
-        if (filters.budget === 'High') {
-            // High Budget: Sortir dari MAHAL ke MURAH -> Ambil 40% Teratas
-            candidates.sort((a, b) => b.price - a.price);
-            const topTierCount = Math.max(2, Math.floor(candidates.length * 0.4));
-            candidates = candidates.slice(0, topTierCount);
-        } else if (filters.budget === 'Low') {
-            // Low Budget: Sortir dari MURAH ke MAHAL -> Ambil 50% Terbawah
-            candidates.sort((a, b) => a.price - b.price);
-            const lowTierCount = Math.max(2, Math.floor(candidates.length * 0.5));
-            candidates = candidates.slice(0, lowTierCount);
-        }
+        // --- LOGIC SORTING (PENGURUTAN CERDAS) ---
+        candidates.sort((a, b) => {
+            // 1. Logic Office: Selalu cari yang Termurah
+            if (filters.purpose === 'Office') {
+                return a.price - b.price;
+            }
+
+            // 2. Logic Editing: Prioritaskan CORES (CPU) & VRAM (GPU)
+            if (filters.purpose === 'Editing') {
+                if (category === 'CPU') return b.cores - a.cores; // Core terbanyak
+                if (category === 'GPU') return b.vram - a.vram;   // VRAM terbanyak
+            }
+
+            // 3. Logic Gaming: Prioritaskan Harga Mahal (Performa) untuk GPU
+            if (filters.purpose === 'Gaming' && category === 'GPU') {
+                return b.price - a.price; 
+            }
+
+            // 4. Default Budget Sorting (Jika tidak masuk logic di atas)
+            if (filters.budget === 'High') return b.price - a.price; // Mahal -> Murah
+            if (filters.budget === 'Low') return a.price - b.price; // Murah -> Mahal
+            
+            return 0; // Random (Mid)
+        });
+
+        // Ambil porsi terbaik (Top Candidates)
+        const cutOff = Math.max(3, Math.floor(candidates.length * 0.4));
+        // Jika Office/Low, ambil dari atas (setelah disortir murah)
+        // Jika Gaming/High, ambil dari atas (setelah disortir mahal/spek)
+        candidates = candidates.slice(0, cutOff);
         
         if (candidates.length === 0) { 
             const all = components.filter(c => c.category === category && additionalFilter(c));
@@ -447,7 +502,7 @@ const App = () => {
     const caseCandidates = getCandidates('Case');
     if (caseCandidates.length > 0) newParts.Case = caseCandidates[Math.floor(Math.random() * caseCandidates.length)];
 
-    setCurrentBuild({ id: null, name: `Rekomendasi ${filters.budget} - ${filters.power}`, parts: newParts });
+    setCurrentBuild({ id: null, name: `Rekomendasi ${filters.budget} - ${filters.purpose}`, parts: newParts });
     setView('builder');
   };
 
@@ -469,7 +524,7 @@ const App = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e] p-4">
           <div className="bg-[#252540] p-8 rounded-2xl border border-gray-700 shadow-2xl w-full max-w-md">
               <div className="flex justify-center mb-6">
-                 <img src="/rigvibes-logo.png" alt="RigVibes Logo" className="w-20 h-20 rounded-xl" />
+                  <img src="/rigvibes-logo.png" alt="RigVibes Logo" className="w-20 h-20 rounded-xl" />
               </div>
               <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome Back</h2>
               <p className="text-gray-400 text-center mb-8">Masuk untuk mulai merakit PC impianmu</p>
@@ -596,7 +651,7 @@ const App = () => {
             <div className="h-1 bg-[#39ff14] w-1/3 shadow-[0_0_10px_#39ff14]"></div>
          </div>
 
-         {/* --- WRAPPER ID UNTUK PRINT PDF (Mulai dari Sini) --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF (START) --- */}
          <div id="print-area" className="bg-[#252540] p-8 rounded-2xl border border-gray-700 mb-6">
             
             {/* Header Khusus PDF */}
@@ -664,7 +719,7 @@ const App = () => {
                 ))}
             </div>
          </div>
-         {/* --- WRAPPER ID UNTUK PRINT PDF (Selesai di Sini) --- */}
+         {/* --- WRAPPER ID UNTUK PRINT PDF (END) --- */}
 
 
          {/* MENU EDITOR (SELECT COMPONENT) */}
