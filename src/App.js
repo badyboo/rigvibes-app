@@ -469,7 +469,7 @@ const App = () => {
       <div className="min-h-screen flex items-center justify-center bg-[#1a1a2e] p-4">
           <div className="bg-[#252540] p-8 rounded-2xl border border-gray-700 shadow-2xl w-full max-w-md">
               <div className="flex justify-center mb-6">
-                  <img src="/rigvibes-logo.png" alt="RigVibes Logo" className="w-20 h-20 shadow-[0_0_20px_#39ff14] rounded-xl" />
+                 <img src="/rigvibes-logo.png" alt="RigVibes Logo" className="w-20 h-20 rounded-xl" />
               </div>
               <h2 className="text-3xl font-bold text-white text-center mb-2">Welcome Back</h2>
               <p className="text-gray-400 text-center mb-8">Masuk untuk mulai merakit PC impianmu</p>
